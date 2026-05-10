@@ -434,10 +434,7 @@
   <!-- SCRIPTS                                         -->
   <!-- ════════════════════════════════════════════════ -->
 
-  <!-- HLS.js polyfill for broader HLS support -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
-  <!-- Video.js (local) -->
+  <!-- HLS playback handled by Video.js built-in HLS support (video.min.js) -->
   <script src="./video.min.js"></script>
 
   <script>
@@ -494,25 +491,11 @@
         videoTitle.textContent = name;
         document.title = name + ' - Hiddify视频教程';
 
-        // Switch source using Video.js API
+        // Switch source using Video.js built-in HLS support
         player.src({
           src: srcUrl,
           type: 'application/x-mpegURL'
         });
-
-        // HLS.js fallback for browsers without native HLS
-        if (Hls && Hls.isSupported()) {
-          var videoEl = player.el().querySelector('video');
-          if (videoEl) {
-            var hls = new Hls();
-            hls.loadSource(srcUrl);
-            hls.attachMedia(videoEl);
-            player.ready(function() {
-              // Remove the default source to avoid double-loading
-              player.src('');
-            });
-          }
-        }
 
         player.play();
       }
