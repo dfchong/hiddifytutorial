@@ -24,6 +24,7 @@
 10. 播放器参考: /references/video.html
 11. 风格参考： https://hiddify.com
 12. 我已经对项目做了基础配置，请先浏览项目内的文件，了解结构
+13. 你现在的工作环境是k3s内的code-server
 
 
 
