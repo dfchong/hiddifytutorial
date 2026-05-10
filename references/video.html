@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video.js HLS Player Reference</title>
+
+    <!-- Video.js CSS -->
+    <link href="../js/video-js.min.css" rel="stylesheet" />
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #ffffff;
+        }
+        .player-wrapper {
+            background-color: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+        }
+        .source-list {
+            margin-top: 2rem;
+            padding: 1.25rem;
+            background-color: #16213e;
+            border-radius: 8px;
+        }
+        .source-list h2 {
+            margin: 0 0 0.75rem 0;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #a0aec0;
+        }
+        .source-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .source-list li {
+            margin: 0;
+        }
+        .source-list a {
+            display: inline-block;
+            padding: 0.45rem 1rem;
+            background-color: #0f3460;
+            color: #e0e0e0;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background-color 0.2s, color 0.2s;
+            cursor: pointer;
+        }
+        .source-list a:hover {
+            background-color: #533483;
+            color: #ffffff;
+        }
+        .source-list a.active {
+            background-color: #e94560;
+            color: #ffffff;
+        }
+        .info-note {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #718096;
+        }
+        .info-note code {
+            background-color: #2d3748;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Video.js HLS Player Reference</h1>
+
+    <div class="player-wrapper">
+        <video
+            id="video-player"
+            class="video-js vjs-default-skin vjs-big-play-centered vjs-16-9"
+            controls
+            data-setup='{"controls": true, "autoplay": false, "preload": "auto", "fluid": true}'
+        >
+            <source src="https://qcwdvf.bluepod.win/vedios/hls_windows/index.m3u8" type="application/x-mpegURL" />
+            <p class="vjs-no-js">
+                To view this video please enable JavaScript, and consider upgrading to a
+                web browser that <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>.
+            </p>
+        </video>
+    </div>
+
+    <div class="source-list">
+        <h2>Available Video Sources</h2>
+        <ul>
+            <li><a href="#" data-src="https://qcwdvf.bluepod.win/vedios/hls_windows/index.m3u8" class="active">Windows</a></li>
+            <li><a href="#" data-src="https://qcwdvf.bluepod.win/vedios/hls_android/index.m3u8">Android</a></li>
+            <li><a href="#" data-src="https://qcwdvf.bluepod.win/vedios/hls_ios/index.m3u8">iOS</a></li>
+            <li><a href="#" data-src="https://qcwdvf.bluepod.win/vedios/hls_mac/index.m3u8">Mac</a></li>
+            <li><a href="#" data-src="https://qcwdvf.bluepod.win/vedios/addnodes/index.m3u8">Add Nodes</a></li>
+        </ul>
+    </div>
+
+    <p class="info-note">
+        Uses Video.js v7 with HLS playback. Source files are <code>.m3u8</code> HLS streams.
+    </p>
+</div>
+
+<script src="../js/video.min.js"></script>
+
+<script>
+    var player = videojs('video-player', {
+        controls: true,
+        autoplay: false,
+        preload: 'auto',
+        fluid: true
+    });
+
+    // Source switching
+    var sourceLinks = document.querySelectorAll('.source-list a');
+
+    sourceLinks.forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Update active state
+            sourceLinks.forEach(function(el) {
+                el.classList.remove('active');
+            });
+            this.classList.add('active');
+
+            // Get source URL
+            var src = this.getAttribute('data-src');
+
+            // Switch source and play
+            player.src({
+                src: src,
+                type: 'application/x-mpegURL'
+            });
+            player.play();
+        });
+    });
+
+    // Log player readiness
+    player.ready(function() {
+        console.log('Video.js player ready');
+    });
+
+    // Error handling
+    player.on('error', function() {
+        var err = player.error();
+        console.error('Playback error (code ' + err.code + '):', err.message);
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hiddify视频教程</title>
+
+  <!-- Tailwind CSS output -->
+  <link href="./output.css" rel="stylesheet">
+
+  <!-- Video.js CSS (pre-bundled) -->
+  <link href="../js/video-js.min.css" rel="stylesheet">
+
+  <style>
+    /* ── Gradient banner background ── */
+    .gradient-banner {
+      background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 50%, #06b6d4 100%);
+    }
+
+    /* ── Sidebar styling ── */
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+      color: #94a3b8;
+      font-size: 0.95rem;
+      font-weight: 500;
+      user-select: none;
+    }
+    .sidebar-item:hover {
+      background-color: rgba(124, 58, 237, 0.15);
+      color: #e2e8f0;
+    }
+    .sidebar-item.active {
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(59, 130, 246, 0.2));
+      color: #ffffff;
+      box-shadow: inset 3px 0 0 #7c3aed;
+    }
+    .sidebar-item .icon {
+      font-size: 1.2rem;
+      width: 1.6rem;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* ── Scrollbar styling ── */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* ── Video player container ── */
+    .player-container {
+      border-radius: 0.75rem;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    .player-container .video-js {
+      width: 100%;
+    }
+
+    /* ── Section transitions ── */
+    .section {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Download cards ── */
+    .download-card {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid #334155;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .download-card:hover {
+      border-color: #7c3aed;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2);
+    }
+    .download-card .icon-box {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(59, 130, 246, 0.15));
+      flex-shrink: 0;
+    }
+
+    /* ── Note / info boxes ── */
+    .note-box {
+      background: #1e293b;
+      border-left: 4px solid #7c3aed;
+      border-radius: 0.5rem;
+      padding: 1rem 1.25rem;
+    }
+
+    /* ── Mobile sidebar toggle ── */
+    .mobile-nav-toggle {
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .sidebar-desktop {
+        display: none;
+      }
+      .sidebar-desktop.open {
+        display: block;
+        position: fixed;
+        top: 4rem;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #0f172a;
+        z-index: 40;
+        padding: 1rem;
+        overflow-y: auto;
+      }
+      .mobile-nav-toggle {
+        display: flex;
+      }
+    }
+
+    /* ── Dev link ── */
+    .dev-link {
+      color: #475569;
+      font-size: 0.75rem;
+      text-decoration: none;
+    }
+    .dev-link:hover {
+      color: #7c3aed;
+      text-decoration: underline;
+    }
+
+    /* ── Video.js skin tweaks ── */
+    .video-js .vjs-big-play-button {
+      background: linear-gradient(135deg, #7c3aed, #3b82f6) !important;
+      border: none !important;
+      border-radius: 50% !important;
+      width: 3em !important;
+      height: 3em !important;
+      line-height: 3em !important;
+    }
+    .video-js.vjs-has-started .vjs-big-play-button {
+      display: none;
+    }
+    .video-js .vjs-control-bar {
+      background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.9) 100%) !important;
+    }
+    .video-js .vjs-play-progress {
+      background: linear-gradient(90deg, #7c3aed, #3b82f6) !important;
+    }
+    .video-js .vjs-slider {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+    }
+    .video-js .vjs-volume-level {
+      background: linear-gradient(90deg, #7c3aed, #3b82f6) !important;
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen flex flex-col">
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- HEADER BANNER                                   -->
+  <!-- ════════════════════════════════════════════════ -->
+  <header class="gradient-banner px-4 py-5 md:py-6 shadow-lg relative overflow-hidden">
+    <!-- Decorative circles -->
+    <div class="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/5 blur-3xl"></div>
+    <div class="absolute -bottom-8 -right-8 w-48 h-48 rounded-full bg-white/5 blur-3xl"></div>
+    <div class="absolute top-2 right-1/4 w-24 h-24 rounded-full bg-white/5 blur-2xl"></div>
+
+    <div class="max-w-6xl mx-auto flex items-center justify-between relative z-10">
+      <div class="flex items-center gap-3">
+        <!-- Logo icon -->
+        <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center text-xl md:text-2xl font-bold shadow-lg">
+          H
+        </div>
+        <div>
+          <h1 class="text-xl md:text-3xl font-bold tracking-tight drop-shadow-lg">Hiddify视频教程</h1>
+          <p class="text-xs md:text-sm text-white/70 hidden sm:block">Hiddify VPN 配置与软件下载</p>
+        </div>
+      </div>
+
+      <!-- Mobile sidebar toggle -->
+      <button id="mobile-nav-toggle" class="mobile-nav-toggle p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- MAIN LAYOUT: SIDEBAR + CONTENT                  -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="flex flex-1 max-w-6xl mx-auto w-full px-4 md:px-6 gap-6 py-6">
+
+    <!-- ──── SIDEBAR ──── -->
+    <aside id="sidebar" class="sidebar-desktop w-full md:w-[220px] shrink-0">
+      <nav class="md:sticky md:top-6 space-y-1">
+        <!-- Windows -->
+        <div class="sidebar-item active" data-target="video" data-video="windows" data-title="Windows教程 - Hiddify视频教程">
+          <span class="icon">🪟</span>
+          <span>Windows</span>
+        </div>
+        <!-- Android -->
+        <div class="sidebar-item" data-target="video" data-video="android" data-title="Android教程 - Hiddify视频教程">
+          <span class="icon">🤖</span>
+          <span>Android</span>
+        </div>
+        <!-- iOS -->
+        <div class="sidebar-item" data-target="video" data-video="ios" data-title="iOS教程 - Hiddify视频教程">
+          <span class="icon">🍎</span>
+          <span>iOS</span>
+        </div>
+        <!-- Mac -->
+        <div class="sidebar-item" data-target="video" data-video="mac" data-title="Mac教程 - Hiddify视频教程">
+          <span class="icon">💻</span>
+          <span>Mac</span>
+        </div>
+        <!-- 添加节点 -->
+        <div class="sidebar-item" data-target="video" data-video="addnodes" data-title="添加节点教程 - Hiddify视频教程">
+          <span class="icon">➕</span>
+          <span>添加节点</span>
+        </div>
+
+        <!-- Divider -->
+        <div class="border-t border-gray-800 my-2"></div>
+
+        <!-- 软件下载 -->
+        <div class="sidebar-item" data-target="download" data-title="软件下载 - Hiddify视频教程">
+          <span class="icon">📥</span>
+          <span>软件下载</span>
+        </div>
+      </nav>
+
+      <!-- Dev reference link -->
+      <div class="mt-6 text-center md:sticky" style="top: calc(100vh - 3rem);">
+        <a href="../references/video.html" target="_blank" class="dev-link">播放器参考</a>
+      </div>
+    </aside>
+
+    <!-- ──── MAIN CONTENT ──── -->
+    <main class="flex-1 min-w-0">
+
+      <!-- ════════════════════════════════════════════ -->
+      <!-- VIDEO PLAYER SECTION                        -->
+      <!-- ════════════════════════════════════════════ -->
+      <div id="video-section" class="section active">
+        <!-- Platform title -->
+        <h2 id="video-title" class="text-2xl md:text-3xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+          Windows教程
+        </h2>
+
+        <!-- Player wrapper -->
+        <div class="player-container bg-black">
+          <video
+            id="video-player"
+            class="video-js vjs-default-skin vjs-big-play-centered vjs-16-9"
+            controls
+            preload="auto"
+            data-setup='{"controls":true,"autoplay":false,"preload":"auto","fluid":true}'
+          >
+            <source src="https://qcwdvf.bluepod.win/vedios/hls_windows/index.m3u8" type="application/x-mpegURL" />
+            <p class="vjs-no-js">
+              要观看此视频，请启用 JavaScript，并考虑升级到
+              <a href="https://videojs.com/html5-video-support/" target="_blank">支持 HTML5 视频的浏览器</a>。
+            </p>
+          </video>
+        </div>
+
+        <!-- Video info bar -->
+        <div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-400">
+          <span class="flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            HLS 流媒体播放
+          </span>
+          <span class="text-gray-600">|</span>
+          <span>Video.js + HLS.js</span>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════ -->
+      <!-- DOWNLOAD SECTION                            -->
+      <!-- ════════════════════════════════════════════ -->
+      <div id="download-section" class="section">
+        <h2 class="text-2xl md:text-3xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+          软件下载
+        </h2>
+
+        <!-- ── 说明 ── -->
+        <div class="mb-8">
+          <h3 class="text-lg font-semibold text-purple-300 mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-purple-400 inline-block"></span>
+            说明
+          </h3>
+          <div class="space-y-2">
+            <div class="note-box flex items-start gap-3">
+              <span class="text-purple-400 font-bold shrink-0 mt-0.5">a.</span>
+              <p class="text-gray-300 text-sm leading-relaxed">推荐去官方网站下载最新版软件，本站下载不一定是最新版</p>
+            </div>
+            <div class="note-box flex items-start gap-3">
+              <span class="text-purple-400 font-bold shrink-0 mt-0.5">b.</span>
+              <p class="text-gray-300 text-sm leading-relaxed">手机下载推荐使用 Play Store 或 App Store</p>
+            </div>
+            <div class="note-box flex items-start gap-3">
+              <span class="text-purple-400 font-bold shrink-0 mt-0.5">c.</span>
+              <p class="text-gray-300 text-sm leading-relaxed">在官方站点无法连接时在本站下载</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 官方 ── -->
+        <div class="mb-8">
+          <h3 class="text-lg font-semibold text-blue-300 mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-400 inline-block"></span>
+            官方
+          </h3>
+          <div class="bg-[#1e293b] rounded-xl p-4 space-y-3 border border-gray-800">
+            <div class="flex items-center gap-3">
+              <span class="text-gray-400 text-sm w-24 shrink-0">🌐 网站：</span>
+              <a href="https://hiddify.com" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm break-all transition-colors underline underline-offset-2">
+                https://hiddify.com
+              </a>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-gray-400 text-sm w-24 shrink-0">📦 下载地址：</span>
+              <a href="https://github.com/hiddify/hiddify-app/releases" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm break-all transition-colors underline underline-offset-2">
+                https://github.com/hiddify/hiddify-app/releases
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 本站下载 ── -->
+        <div>
+          <h3 class="text-lg font-semibold text-emerald-300 mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+            本站下载
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Windows -->
+            <a href="https://qcwdvf.bluepod.win/files/Hiddify-Windows-Setup-x64.exe" target="_blank" class="download-card flex items-center gap-4 no-underline">
+              <div class="icon-box">🪟</div>
+              <div>
+                <p class="font-semibold text-white">Windows</p>
+                <p class="text-xs text-gray-400">.exe</p>
+              </div>
+            </a>
+
+            <!-- Android -->
+            <a href="https://qcwdvf.bluepod.win/files/Hiddify-Android-universal.apk" target="_blank" class="download-card flex items-center gap-4 no-underline">
+              <div class="icon-box">🤖</div>
+              <div>
+                <p class="font-semibold text-white">Android</p>
+                <p class="text-xs text-gray-400">.apk</p>
+              </div>
+            </a>
+
+            <!-- Mac -->
+            <a href="https://qcwdvf.bluepod.win/files/Hiddify-MacOS.dmg" target="_blank" class="download-card flex items-center gap-4 no-underline">
+              <div class="icon-box">🍎</div>
+              <div>
+                <p class="font-semibold text-white">Mac</p>
+                <p class="text-xs text-gray-400">.dmg</p>
+              </div>
+            </a>
+
+            <!-- iOS -->
+            <a href="https://qcwdvf.bluepod.win/files/Hiddify-iOS.ipa" target="_blank" class="download-card flex items-center gap-4 no-underline">
+              <div class="icon-box">📱</div>
+              <div>
+                <p class="font-semibold text-white">iOS</p>
+                <p class="text-xs text-gray-400">.ipa</p>
+              </div>
+            </a>
+
+            <!-- Linux -->
+            <a href="https://qcwdvf.bluepod.win/files/Hiddify-Debian-x64.deb" target="_blank" class="download-card flex items-center gap-4 no-underline">
+              <div class="icon-box">🐧</div>
+              <div>
+                <p class="font-semibold text-white">Linux</p>
+                <p class="text-xs text-gray-400">.deb</p>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- FOOTER                                          -->
+  <!-- ════════════════════════════════════════════════ -->
+  <footer class="border-t border-gray-800 mt-auto">
+    <div class="max-w-6xl mx-auto px-4 md:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600">
+      <p>&copy; 2026 Hiddify视频教程</p>
+      <div class="flex items-center gap-4">
+        <a href="https://hiddify.com" target="_blank" class="hover:text-gray-400 transition-colors">官方网站</a>
+        <a href="../references/video.html" target="_blank" class="hover:text-gray-400 transition-colors">播放器参考</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- SCRIPTS                                         -->
+  <!-- ════════════════════════════════════════════════ -->
+
+  <!-- HLS.js polyfill for broader HLS support -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+  <!-- Video.js -->
+  <script src="../js/video.min.js"></script>
+
+  <script>
+    (function() {
+      'use strict';
+
+      /* ── Video sources map ── */
+      var sources = {
+        windows: 'https://qcwdvf.bluepod.win/vedios/hls_windows/index.m3u8',
+        android: 'https://qcwdvf.bluepod.win/vedios/hls_android/index.m3u8',
+        ios:     'https://qcwdvf.bluepod.win/vedios/hls_ios/index.m3u8',
+        mac:     'https://qcwdvf.bluepod.win/vedios/hls_mac/index.m3u8',
+        addnodes:'https://qcwdvf.bluepod.win/vedios/addnodes/index.m3u8'
+      };
+
+      /* ── DOM references ── */
+      var sidebarItems  = document.querySelectorAll('.sidebar-item');
+      var videoSection  = document.getElementById('video-section');
+      var downloadSection = document.getElementById('download-section');
+      var videoTitle    = document.getElementById('video-title');
+      var mobileToggle  = document.getElementById('mobile-nav-toggle');
+      var sidebar       = document.getElementById('sidebar');
+
+      /* ── Video.js player instance ── */
+      var player = videojs('video-player', {
+        controls: true,
+        autoplay: false,
+        preload: 'auto',
+        fluid: true,
+        html5: {
+          hls: {
+            overrideNative: true
+          }
+        }
+      });
+
+      /* ── Platform name mapping (Chinese) ── */
+      var platformNames = {
+        windows: 'Windows教程',
+        android: 'Android教程',
+        ios:     'iOS教程',
+        mac:     'Mac教程',
+        addnodes:'添加节点教程'
+      };
+
+      /* ── Switch video source and play ── */
+      function switchVideo(platform) {
+        var srcUrl = sources[platform];
+        if (!srcUrl) return;
+
+        var name = platformNames[platform] || platform;
+
+        // Update title
+        videoTitle.textContent = name;
+        document.title = name + ' - Hiddify视频教程';
+
+        // Switch source using Video.js API
+        player.src({
+          src: srcUrl,
+          type: 'application/x-mpegURL'
+        });
+
+        // HLS.js fallback for browsers without native HLS
+        if (Hls && Hls.isSupported()) {
+          var videoEl = player.el().querySelector('video');
+          if (videoEl) {
+            var hls = new Hls();
+            hls.loadSource(srcUrl);
+            hls.attachMedia(videoEl);
+            player.ready(function() {
+              // Remove the default source to avoid double-loading
+              player.src('');
+            });
+          }
+        }
+
+        player.play();
+      }
+
+      /* ── Show section (video or download) ── */
+      function showSection(section) {
+        videoSection.classList.remove('active');
+        downloadSection.classList.remove('active');
+        if (section === 'download') {
+          downloadSection.classList.add('active');
+          document.title = '软件下载 - Hiddify视频教程';
+        } else {
+          videoSection.classList.add('active');
+        }
+      }
+
+      /* ── Handle sidebar clicks ── */
+      sidebarItems.forEach(function(item) {
+        item.addEventListener('click', function(e) {
+          // Update active state
+          sidebarItems.forEach(function(el) {
+            el.classList.remove('active');
+          });
+          this.classList.add('active');
+
+          var target = this.getAttribute('data-target');
+          var video  = this.getAttribute('data-video');
+          var title  = this.getAttribute('data-title');
+
+          if (target === 'download') {
+            showSection('download');
+            if (title) document.title = title;
+          } else if (target === 'video' && video) {
+            showSection('video');
+            switchVideo(video);
+          }
+
+          // Close mobile sidebar
+          if (window.innerWidth <= 768) {
+            sidebar.classList.remove('open');
+          }
+        });
+      });
+
+      /* ── Mobile toggle ── */
+      mobileToggle.addEventListener('click', function() {
+        sidebar.classList.toggle('open');
+      });
+
+      // Close mobile sidebar when clicking outside
+      document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) {
+          var isSidebar = sidebar.contains(e.target);
+          var isToggle  = mobileToggle.contains(e.target);
+          if (!isSidebar && !isToggle) {
+            sidebar.classList.remove('open');
+          }
+        }
+      });
+
+      /* ── Player error handling ── */
+      player.on('error', function() {
+        var err = player.error();
+        console.warn('Video.js error (code ' + err.code + '):', err.message);
+      });
+
+      player.ready(function() {
+        console.log('Video.js player ready');
+      });
+
+      /* ── Initial active state: Windows ── */
+      document.title = 'Windows教程 - Hiddify视频教程';
+
+    })();
+  </script>
+
+</body>
+</html>
