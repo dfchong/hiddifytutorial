@@ -5,6 +5,6 @@
   },
   "scripts": {
     "dev": "npx @tailwindcss/cli -i ./src/input.css -o ./src/output.css --watch",
-    "build": "rm -rf dist && mkdir -p dist && npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --minify && cp src/index.html dist/"
+    "build": "rm -rf dist && mkdir -p dist && npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --minify && cp src/index.html src/video-js.min.css src/video.min.js dist/"
   }
 }
